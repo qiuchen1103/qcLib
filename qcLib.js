@@ -2,7 +2,7 @@
 	if (!window.qcLib) {
 		window['qcLib'] = {};
 	}
-    // 获取当前样式 兼容FF和IE
+    // 获取当前样式 兼容 FF和 IE
     HTMLElement.prototype.__defineGetter__("currentStyle", function () { 
         return this.ownerDocument.defaultView.getComputedStyle(this, null); 
     });
@@ -99,5 +99,60 @@
     }
     window['qcLib']['getBrowserWindowSize'] = getBrowserWindowSize;
 
-    
+    // 兼容所有浏览器的XHR
+    // function createXHR(){
+    //     if (typeof XMLHttpRequest != "undefined"){
+    //             return new XMLHttpRequest();
+    //         } else if (typeof ActiveXObject != "undefined"){
+    //             if (typeof arguments.callee.activeXString != "string"){
+    //                 var versions = [ "MSXML2.XMLHttp.6.0", "MSXML2.XMLHttp.3.0",
+    //                 "MSXML2.XMLHttp"],
+    //                 i, len;
+    //                 for (i=0,len=versions.length; i < len; i++){
+    //                     try {
+    //                         new ActiveXObject(versions[i]);
+    //                         arguments.callee.activeXString = versions[i];
+    //                         break;
+    //                     } catch (ex){
+    //                     //跳过
+    //                     }
+    //                 }
+    //             }
+    //             return new ActiveXObject(arguments.callee.activeXString);
+    //         } else {
+    //         throw new Error("No XHR object available.");
+    //     }
+    // }
+    // 惰性载入 XHR
+    function createXHR(){
+        if (typeof XMLHttpRequest != "undefined"){
+            createXHR = function(){
+                return new XMLHttpRequest();
+            };
+        } else if (typeof ActiveXObject != "undefined"){
+            createXHR = function(){
+                if (typeof arguments.callee.activeXString != "string"){
+                    var versions = ["MSXML2.XMLHttp.6.0", "MSXML2.XMLHttp.3.0",
+                    "MSXML2.XMLHttp"],
+                    i, len;
+                    for (i=0,len=versions.length; i < len; i++){
+                        try {
+                        new ActiveXObject(versions[i]);
+                        arguments.callee.activeXString = versions[i];
+                        break;
+                        } catch (ex){
+                            //skip
+                        }
+                    }
+                }
+                return new ActiveXObject(arguments.callee.activeXString);
+            };
+        } else {
+            createXHR = function(){
+                throw new Error("No XHR object available.");
+            };
+        }
+        return createXHR();
+    }
+    window['qcLib']['createXHR'] = createXHR;
 })();
